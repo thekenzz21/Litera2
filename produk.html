@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Litera</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+ <style>
+  :root {
+    --old-paper: #F8ECD4;
+    --mahogany: #6D4C41;
+    --olive: #8D9440; 
+    --deep-red: #C62828;
+    --accent: #F9A825;
+    --white: #FFFFFF;
+  }
+  #loading {
+    position: fixed; z-index: 9999; width: 100vw; height: 100vh;
+    background: var(--old-paper); display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.8s;
+  }
+  #loading.hide { opacity: 0; pointer-events: none; }
+  body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    background: var(--old-paper);
+    color: var(--mahogany);
+  }
+  .navbar, .navbar.bg-primary {
+    background: var(--mahogany) !important;
+  }
+  .navbar-brand, .navbar-nav .nav-link {
+    color: var(--old-paper) !important;
+    font-family: 'Georgia', serif;
+  }
+  .navbar-nav .nav-link.active {
+    font-weight: bold;
+    color: var(--accent) !important;
+    text-shadow: 0 1px 0 var(--mahogany);
+  }
+  .book-card {
+    transition: transform 0.25s cubic-bezier(.4,2,.6,1), box-shadow 0.25s;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(109,76,65,0.07);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--old-paper);
+    border: 1px solid var(--mahogany);
+    position: relative;
+  }
+  .book-card:hover {
+    transform: scale(1.045);
+    box-shadow: 0 12px 32px rgba(109,76,65,0.13);
+    z-index: 2;
+    border-color: var(--olive);
+    will-change: transform;
+  }
+  .card-detail {
+    display: block;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.3s cubic-bezier(.4,2,.6,1), opacity 0.3s;
+    font-size: 0.9em;
+    color: var(--mahogany);
+    font-family: 'Georgia', serif;
+  }
+  .book-card:hover .card-detail {
+    max-height: 100px;
+    opacity: 1;
+    margin-top: 0.5rem;
+  }
+  .book-card img {
+    height: 110px;
+    object-fit: cover;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    filter: sepia(0.18) contrast(1.05);
+    transition: filter 0.3s;
+  }
+  .book-card:hover img {
+    filter: brightness(0.93) sepia(0.18) contrast(1.05);
+  }
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--deep-red);
+    font-family: 'Georgia', serif;
+  }
+  .card-text {
+    font-size: 0.97rem;
+    color: var(--mahogany);
+    font-family: 'Georgia', serif;
+  }
+  .btn-primary {
+    border-radius: 18px;
+    font-size: 0.97rem;
+    padding: 0.35rem 1.2rem;
+    background: var(--accent);
+    border: none;
+    color: var(--mahogany);
+    font-weight: 600;
+    font-family: 'Georgia', serif;
+    transition: background 0.2s, color 0.2s;
+    box-shadow: 0 2px 8px rgba(249,168,37,0.08);
+  }
+  .btn-primary:hover, .btn-primary:focus {
+    background: var(--deep-red);
+    color: var(--old-paper);
+  }
+  .section-title {
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 2.5rem; 
+    color: var(--deep-red);
+    font-family: 'Georgia', serif;
+    text-shadow: 0 1px 0 var(--old-paper);
+  }
+  footer {
+    font-size: 0.95rem;
+    background: linear-gradient(to right, var(--mahogany), var(--olive));
+    border-top: 2px solid var(--olive);
+    color: var(--old-paper);
+    font-family: 'Georgia', serif;
+  }
+  /* Modal pembayaran custom */
+  .modal-pembayaran-bg {
+    position: fixed;
+    z-index: 1050;
+    left: 0; top: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s;
+  }
+  .modal-pembayaran {
+    background: var(--old-paper);
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(109,76,65,0.18);
+    width: 80vw;
+    max-width: 700px;
+    min-height: 60vh;
+    padding: 2.5rem 2rem 2rem 2rem;
+    position: relative;
+    animation: modalIn 0.4s cubic-bezier(.4,2,.6,1);
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(60px) scale(0.97);}
+    to { opacity: 1; transform: translateY(0) scale(1);}
+  }
+  .modal-pembayaran .close-modal {
+    position: absolute;
+    top: 18px;
+    right: 24px;
+    font-size: 1.7rem;
+    color: var(--deep-red);
+    background: none;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 2;
+  }
+  .modal-pembayaran h4 {
+    color: var(--deep-red);
+    font-family: 'Georgia', serif;
+    font-weight: bold;
+    margin-bottom: 1.2rem;
+  }
+  .modal-pembayaran .btn-success {
+    border-radius: 18px;
+    font-size: 1rem;
+    background: var(--accent);
+    border: none;
+    color: var(--mahogany);
+    font-weight: 600;
+    font-family: 'Georgia', serif;
+    transition: background 0.2s, color 0.2s;
+    box-shadow: 0 2px 8px rgba(249,168,37,0.08);
+  }
+  .modal-pembayaran .btn-success:hover {
+    background: var(--deep-red);
+    color: var(--old-paper);
+  }
+ </style>
+</head>
+
+<body>
+   <!-- Loading Animation -->
+  <div id="loading">
+    <div class="spinner-border text-primary" style="width:3rem;height:3rem;" role="status"></div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="index.html">Litera</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+     <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Beranda</a></li>
+          <li class="nav-item"><a class="nav-link active" href="produk.html">Katalog</a></li>
+          <li class="nav-item"><a class="nav-link" href="promo.html">Promo</a></li>
+          <li class="nav-item"><a class="nav-link" href="daftar.html">Tersedia</a></li>
+          <li class="nav-item"><a class="nav-link" href="akun.html">Login</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Produk Section -->
+  <div class="container my-4">
+  <h2 class="mb-3 text-center section-title">Katalog Buku</h2>
+  <div class="row row-cols-1 row-cols-md-3 g-3">
+    <div class="col">
+      <div class="card book-card">
+        <img src="wall.jpg" class="card-img-top" alt="Romantis">
+        <div class="card-body">
+          <h5 class="card-title">Novel Romantis</h5>
+          <p class="card-text">Bikin baper dan susah move on.</p>
+          <div class="card-detail">Penulis: A. Lestari<br>Stok: 12<br>Rating: 4.8/5<br><strong>Harga: Rp45.000</strong></div>
+          <a href="#" class="btn btn-primary btn-sm mt-2 btn-beli-sekarang" data-harga="45000">Beli Sekarang</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card book-card">
+        <img src="wall.jpg" class="card-img-top" alt="Teknologi">
+        <div class="card-body">
+          <h5 class="card-title">Teknologi Masa Depan</h5>
+          <p class="card-text">AI, IoT, dan digitalisasi lengkap.</p>
+          <div class="card-detail">Penulis: B. Pratama<br>Stok: 8<br>Rating: 4.7/5<br><strong>Harga: Rp52.000</strong></div>
+          <a href="#" class="btn btn-primary btn-sm mt-2 btn-beli-sekarang" data-harga="52000">Beli Sekarang</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card book-card">
+        <img src="wall.jpg" class="card-img-top" alt="Pendidikan">
+        <div class="card-body">
+          <h5 class="card-title">Psikologi Pendidikan</h5>
+          <p class="card-text">Buat kamu yang suka belajar lebih efisien.</p>
+          <div class="card-detail">Penulis: C. Dewi<br>Stok: 15<br>Rating: 4.9/5<br><strong>Harga: Rp48.000</strong></div>
+          <a href="#" class="btn btn-primary btn-sm mt-2 btn-beli-sekarang" data-harga="48000">Beli Sekarang</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card book-card">
+        <img src="wall.jpg" class="card-img-top" alt="Bisnis">
+        <div class="card-body">
+          <h5 class="card-title">Bisnis Digital</h5>
+          <p class="card-text">Panduan sukses bisnis di era digital.</p>
+          <div class="card-detail">Penulis: D. Santoso<br>Stok: 10<br>Rating: 4.6/5<br><strong>Harga: Rp50.000</strong></div>
+          <a href="#" class="btn btn-primary btn-sm mt-2 btn-beli-sekarang" data-harga="50000">Beli Sekarang</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card book-card">
+        <img src="wall.jpg" class="card-img-top" alt="Anak">
+        <div class="card-body">
+          <h5 class="card-title">Buku Anak Ceria</h5>
+          <p class="card-text">Cerita seru dan edukatif untuk anak-anak.</p>
+          <div class="card-detail">Penulis: E. Wulandari<br>Stok: 20<br>Rating: 4.5/5<br><strong>Harga: Rp35.000</strong></div>
+          <a href="#" class="btn btn-primary btn-sm mt-2 btn-beli-sekarang" data-harga="35000">Beli Sekarang</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card book-card">
+        <img src="wall.jpg" class="card-img-top" alt="Motivasi">
+        <div class="card-body">
+          <h5 class="card-title">Motivasi Hidup</h5>
+          <p class="card-text">Bangkitkan semangat dan inspirasi setiap hari.</p>
+          <div class="card-detail">Penulis: F. Nugroho<br>Stok: 9<br>Rating: 4.4/5<br><strong>Harga: Rp38.000</strong></div>
+          <a href="#" class="btn btn-primary btn-sm mt-2 btn-beli-sekarang" data-harga="38000">Beli Sekarang</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card book-card">
+        <img src="wall.jpg" class="card-img-top" alt="Sejarah">
+        <div class="card-body">
+          <h5 class="card-title">Sejarah Nusantara</h5>
+          <p class="card-text">Mengenal sejarah bangsa dengan cara menyenangkan.</p>
+          <div class="card-detail">Penulis: G. Rahmawati<br>Stok: 7<br>Rating: 4.3/5<br><strong>Harga: Rp42.000</strong></div>
+          <a href="#" class="btn btn-primary btn-sm mt-2 btn-beli-sekarang" data-harga="42000">Beli Sekarang</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card book-card">
+        <img src="wall.jpg" class="card-img-top" alt="Fiksi Ilmiah">
+        <div class="card-body">
+          <h5 class="card-title">Fiksi Ilmiah</h5>
+          <p class="card-text">Petualangan luar angkasa dan teknologi masa depan.</p>
+          <div class="card-detail">Penulis: H. Saputra<br>Stok: 11<br>Rating: 4.7/5<br><strong>Harga: Rp47.000</strong></div>
+          <a href="#" class="btn btn-primary btn-sm mt-2 btn-beli-sekarang" data-harga="47000">Beli Sekarang</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card book-card">
+        <img src="wall.jpg" class="card-img-top" alt="Kuliner">
+        <div class="card-body">
+          <h5 class="card-title">Kuliner Nusantara</h5>
+          <p class="card-text">Resep dan kisah kuliner khas Indonesia.</p>
+          <div class="card-detail">Penulis: I. Prameswari<br>Stok: 13<br>Rating: 4.6/5<br><strong>Harga: Rp41.000</strong></div>
+          <a href="#" class="btn btn-primary btn-sm mt-2 btn-beli-sekarang" data-harga="41000">Beli Sekarang</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Modal Pembayaran (hidden by default) -->
+  <div id="modalPembayaranBg" class="modal-pembayaran-bg" style="display:none;">
+    <div class="modal-pembayaran">
+      <button class="close-modal" onclick="closePembayaran()">&times;</button>
+      <h4>Halaman Pembayaran</h4>
+      <div id="pembayaranContent">
+        <!-- Isi pembayaran akan diisi via JS -->
+      </div>
+      <button id="btnSelesaikanPembayaran" class="btn btn-success mt-4 w-100">Selesaikan Pembayaran</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-primary text-white text-center py-3" style="background: linear-gradient(to right, #6D4C41, var(--olive)) !important;">
+    <p class="mb-0">&copy; 2025 Litera.  Ujian Hummatech</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    window.addEventListener('load', function() {
+      setTimeout(() => document.getElementById('loading').classList.add('hide'), 500);
+    });
+
+    // Cek login dari localStorage
+    function isLoggedIn() {
+      return !!localStorage.getItem('albook_user');
+    }
+
+    // Fungsi untuk menampilkan modal pembayaran
+    function showPembayaran(judul, harga) {
+      document.getElementById('modalPembayaranBg').style.display = 'flex';
+      document.getElementById('pembayaranContent').innerHTML = `
+        <div class="mb-3">
+          <strong>Buku:</strong> ${judul}
+        </div>
+        <div class="mb-3">
+          <strong>Nama Pembeli:</strong> ${localStorage.getItem('albook_user')}
+        </div>
+        <div class="mb-3">
+          <strong>Harga yang harus dibayar:</strong> Rp${Number(harga).toLocaleString('id-ID')}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Metode Pembayaran</label>
+          <select class="form-select" id="metodePembayaran">
+            <option>Transfer Bank</option>
+            <option>QRIS</option>
+            <option>OVO</option>
+            <option>DANA</option>
+            <option>Gopay</option>
+          </select>
+        </div>
+        <div class="alert alert-success mt-3" role="alert">
+          Silakan pilih metode pembayaran dan klik "Selesaikan Pembayaran".
+        </div>
+      `;
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => {
+        document.getElementById('btnSelesaikanPembayaran').onclick = function() {
+          closePembayaran();
+          setTimeout(function() {
+            alert('Selamat, pembayaran berhasil!');
+          }, 350);
+        };
+      }, 100);
+    }
+
+    function closePembayaran() {
+      document.getElementById('modalPembayaranBg').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    // Fungsi tombol Beli Sekarang
+    function handleBeliSekarang(judul, harga) {
+      if (!isLoggedIn()) {
+        if (confirm('Anda harus login terlebih dahulu untuk membeli. Login sekarang?')) {
+          window.location.href = 'akun.html';
+        }
+        return;
+      }
+      showPembayaran(judul, harga);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.btn-beli-sekarang').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          const judul = btn.closest('.card').querySelector('.card-title').textContent;
+          const harga = btn.getAttribute('data-harga') || 0;
+          handleBeliSekarang(judul, harga);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
